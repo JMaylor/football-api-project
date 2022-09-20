@@ -19,9 +19,16 @@ export default {
 
     sidebar: [
       {
+        text: 'Overview',
+        items: [
+          { text: 'About', link: '/about' },
+        ]
+      },
+      {
         text: 'Database',
         items: [
           { text: 'Schema', link: '/database/schema' },
+          { text: 'Data', link: '/database/data' },
         ]
       },
       {
