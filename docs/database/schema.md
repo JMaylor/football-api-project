@@ -2,7 +2,7 @@
 
 I was lucky enough to come across the great website [football-data.co.uk](https://www.football-data.co.uk/data.php), who supplied CSV files for many leagues and seasons. Each CSV file contained information about all the matches played in a given league season, including the teams, the score, and who the referee was.
 
-It seems completely natural to me to hold this information in a relational database (PostgreSQL is my go-to) and split the data into six tables. You can read the complete definition of the database in the [schema.psql](https://github.com/JMaylor) file in the project repository. I also created a visual database diagram using a great tool, [drawsql.app](https://drawsql.app/teams/joes-team-2/diagrams/football), which you can see below.
+It seems completely natural to me to hold this information in a relational database and split the data into six tables. You can read the complete definition of the database in the [schema.psql](https://github.com/JMaylor) file in the project repository. I also created a visual database diagram using a great tool, [drawsql.app](https://drawsql.app/teams/joes-team-2/diagrams/football), which you can see below.
 
 <!-- | Table       | e.g.                                  |
 | ----------- | ------------------------------------- |
