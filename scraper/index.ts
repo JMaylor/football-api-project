@@ -109,35 +109,20 @@ async function connectToDatabase() {
   return client
 }
 
-async function checkAndAddTeam({ team, client }: { team: string, client: Client }) {
-  // check if the team is already in the database
-  const { rowCount } = await client.query('SELECT * FROM team where team_name = $1', [team])
-  if (rowCount > 0) return
-
-  // otherwise add it
-  await client.query('INSERT INTO team (team_name) VALUES ($1)', [team])
+async function addTeam({ team, client }: { team: string, client: Client }) {
+  await client.query('INSERT INTO team (team_name) VALUES ($1) ON CONFLICT DO NOTHING;', [team])
 }
 
-async function checkAndAddReferee({ referee, client }: { referee: string, client: Client }) {
-  if (!referee) return
-  // check if the referee is already in the database
-  const { rowCount } = await client.query('SELECT * FROM referee where referee_name = $1', [referee])
-  if (rowCount > 0) return
-
-  // otherwise add it
-  await client.query('INSERT INTO referee (referee_name) VALUES ($1)', [referee])
+async function addReferee({ referee, client }: { referee: string, client: Client }) {
+  await client.query('INSERT INTO referee (referee_name) VALUES ($1) ON CONFLICT DO NOTHING;', [referee])
 }
 
 async function addCompetition({ competition, client }: { competition: string, client: Client }) {
-  try {
-    await client.query('INSERT INTO competition (competition_name) VALUES ($1)', [competition])
-  } catch (error) {
-  }
+  await client.query('INSERT INTO competition (competition_name) VALUES ($1) ON CONFLICT DO NOTHING;', [competition])
 }
 
 async function addSeason({ competition, season, client }: { competition: string, season: string, client: Client }) {
-  const { rows } = await client.query('INSERT INTO season (competition_name, season_name) VALUES ($1, $2) RETURNING season_id', [competition, season])
-  return rows[0].season_id
+  await client.query('INSERT INTO season (competition_name, season_name) VALUES ($1, $2) ON CONFLICT DO NOTHING;', [competition, season])
 }
 
 async function addFixture({ fixture, seasonId, client }: { fixture: any, seasonId: number, client: Client }) {
@@ -215,11 +200,11 @@ async function fetchAllData() {
           if (!fixture.Div) continue
 
           // check if the teams exist and add them if not
-          await checkAndAddTeam({ team: fixture.HomeTeam || fixture.HT, client })
-          await checkAndAddTeam({ team: fixture.AwayTeam || fixture.AT, client })
+          await addTeam({ team: fixture.HomeTeam || fixture.HT, client })
+          await addTeam({ team: fixture.AwayTeam || fixture.AT, client })
 
-          // check if the referee exists and add them if not
-          await checkAndAddReferee({ referee: fixture.Referee, client })
+          // add the referee
+          await addReferee({ referee: fixture.Referee, client })
 
           // add the fixture
           await addFixture({ fixture, seasonId, client })
