@@ -39,7 +39,8 @@ CREATE TABLE fixture(
     home_reds INTEGER,
     away_reds INTEGER,
 
-    FOREIGN KEY (season_name, competition_name) REFERENCES season(season_name, competition_name)
+    FOREIGN KEY (season_name, competition_name) REFERENCES season(season_name, competition_name),
+    UNIQUE (home_team_name, away_team_name, fixture_date)
 );
 
 CREATE TABLE deduction(
