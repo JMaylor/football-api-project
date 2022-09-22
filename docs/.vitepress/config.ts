@@ -14,7 +14,9 @@ export default {
     logo: '/logo.png',
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/JMaylor/' },
+      { icon: 'github', link: 'https://github.com/JMaylor' },
+      { icon: 'twitter', link: 'https://twitter.com/jamaylor' },
+      { icon: 'linkedin', link: 'https://www.linkedin.com/in/joe-maylor-547399a7/' },
     ],
 
     sidebar: [
@@ -50,7 +52,7 @@ export default {
     },
 
     editLink: {
-      pattern: 'https://github.com/vuejs/vitepress/edit/main/docs/:path',
+      pattern: 'https://github.com/JMaylor/football-api-project/edit/main/docs/:path',
       text: 'Edit this page on GitHub'
     }
   }

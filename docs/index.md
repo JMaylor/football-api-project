@@ -13,5 +13,5 @@ hero:
       link: /database/schema
     - theme: alt
       text: View on GitHub
-      link: https://github.com/JMaylor
+      link: https://github.com/JMaylor/football-api-project
 ---
