@@ -7,10 +7,9 @@ CREATE TABLE referee(referee_name TEXT PRIMARY KEY);
 CREATE TABLE season(
     season_name TEXT NOT NULL,
     competition_name TEXT NOT NULL REFERENCES competition(competition_name),
+
     PRIMARY KEY (season_name, competition_name)
 );
-
-CREATE TYPE valid_result AS ENUM ('A', 'H', 'D');
 
 CREATE TABLE fixture(
     fixture_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -21,10 +20,8 @@ CREATE TABLE fixture(
     competition_name TEXT NOT NULL, 
     full_time_home_goals INTEGER NOT NULL,
     full_time_away_goals INTEGER NOT NULL,
-    full_time_result valid_result NOT NULL,
     half_time_home_goals INTEGER,
     half_time_away_goals INTEGER,
-    half_time_result valid_result NOT NULL,
     referee_name TEXT REFERENCES referee(referee_name),
     home_shots INTEGER,
     away_shots INTEGER,
@@ -50,6 +47,5 @@ CREATE TABLE deduction(
     deduction_amount INTEGER NOT NULL,
 
     PRIMARY KEY (team_name, season_name, competition_name),
-
     FOREIGN KEY (season_name, competition_name) REFERENCES season(season_name, competition_name)
 );
