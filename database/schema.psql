@@ -35,6 +35,7 @@ CREATE TABLE fixture(
     away_yellows INTEGER,
     home_reds INTEGER,
     away_reds INTEGER,
+    is_ignored BOOLEAN DEFAULT FALSE,
 
     FOREIGN KEY (season_name, competition_name) REFERENCES season(season_name, competition_name),
     UNIQUE (home_team_name, away_team_name, fixture_date)
