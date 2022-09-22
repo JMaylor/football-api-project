@@ -113,11 +113,11 @@ async function connectToDatabase() {
 }
 
 async function addTeam({ team, client }: { team: string, client: Client }) {
-  await client.query('INSERT INTO team (team_name) VALUES ($1) ON CONFLICT DO NOTHING;', [team.trim()])
+  await client.query('INSERT INTO team (team_name) VALUES ($1) ON CONFLICT DO NOTHING;', [team])
 }
 
 async function addReferee({ referee, client }: { referee: string, client: Client }) {
-  await client.query('INSERT INTO referee (referee_name) VALUES ($1) ON CONFLICT DO NOTHING;', [referee.trim()])
+  await client.query('INSERT INTO referee (referee_name) VALUES ($1) ON CONFLICT DO NOTHING;', [referee])
 }
 
 async function addCompetition({ competition, client }: { competition: string, client: Client }) {
@@ -140,8 +140,8 @@ async function addFixture({ fixture, competition, season, client }: { fixture: a
   const homeTeam = fixture.HomeTeam || fixture.HT
   const awayTeam = fixture.AwayTeam || fixture.AT
   const fixtureDate = fixture.Date
-  const fullTimeHomeGoals = fixture.FTHG
-  const fullTimeAwayGoals = fixture.FTAG
+  const fullTimeHomeGoals = fixture.FTHG || fixture.HG
+  const fullTimeAwayGoals = fixture.FTAG || fixture.AG
   const referee = fixture.Referee || null
 
   if (!homeTeam || !awayTeam || !fixtureDate || fullTimeHomeGoals === '' || fullTimeAwayGoals === '') {
@@ -177,14 +177,14 @@ async function addFixture({ fixture, competition, season, client }: { fixture: a
         ) ON CONFLICT DO NOTHING;
       `,
       [
-        homeTeam.trim(),
-        awayTeam.trim(),
+        homeTeam,
+        awayTeam,
         fixtureDate,
         season,
         competition,
         fullTimeHomeGoals,
         fullTimeAwayGoals,
-        referee.trim()
+        referee
       ])
   } catch (error) {
     badRows.push({
