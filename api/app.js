@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import autoLoad from '@fastify/autoload'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-dotenv.config()
+dotenv.config({ path: '../.env' })
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
