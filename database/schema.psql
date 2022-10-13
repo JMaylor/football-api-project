@@ -1,14 +1,21 @@
-CREATE TABLE competition(competition_name TEXT PRIMARY KEY);
+CREATE TABLE competition(competition_code TEXT PRIMARY KEY, competition_name TEXT);
 
 CREATE TABLE team(team_name TEXT PRIMARY KEY);
 
 CREATE TABLE referee(referee_name TEXT PRIMARY KEY);
 
 CREATE TABLE season(
+    season_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     season_name TEXT NOT NULL,
-    competition_name TEXT NOT NULL REFERENCES competition(competition_name),
+    competition_code TEXT NOT NULL REFERENCES competition(competition_code)
+);
 
-    PRIMARY KEY (season_name, competition_name)
+CREATE TABLE deduction(
+    team_name TEXT NOT NULL REFERENCES team(team_name),
+    season_id INTEGER NOT NULL REFERENCES season(season_id),
+    deduction_amount INTEGER NOT NULL,
+
+    PRIMARY KEY (team_name, season_id)
 );
 
 CREATE TABLE fixture(
@@ -16,8 +23,7 @@ CREATE TABLE fixture(
     home_team_name TEXT NOT NULL REFERENCES team(team_name),
     away_team_name TEXT NOT NULL REFERENCES team(team_name),
     fixture_date DATE NOT NULL,
-    season_name TEXT NOT NULL,
-    competition_name TEXT NOT NULL, 
+    season_id INTEGER NOT NULL REFERENCES season(season_id), 
     full_time_home_goals INTEGER NOT NULL,
     full_time_away_goals INTEGER NOT NULL,
     half_time_home_goals INTEGER,
@@ -35,18 +41,6 @@ CREATE TABLE fixture(
     away_yellows INTEGER,
     home_reds INTEGER,
     away_reds INTEGER,
-    is_ignored BOOLEAN DEFAULT FALSE,
 
-    FOREIGN KEY (season_name, competition_name) REFERENCES season(season_name, competition_name),
     UNIQUE (home_team_name, away_team_name, fixture_date)
-);
-
-CREATE TABLE deduction(
-    team_name TEXT REFERENCES team(team_name),
-    season_name TEXT NOT NULL,
-    competition_name TEXT NOT NULL, 
-    deduction_amount INTEGER NOT NULL,
-
-    PRIMARY KEY (team_name, season_name, competition_name),
-    FOREIGN KEY (season_name, competition_name) REFERENCES season(season_name, competition_name)
 );
