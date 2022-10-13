@@ -4,7 +4,7 @@ import { Client } from 'pg'
 import fs from 'fs'
 import { parse, format } from 'date-fns'
 
-require('dotenv').config({ path: '../.env' })
+require('dotenv').config()
 
 const seasons = [
   '2122',
