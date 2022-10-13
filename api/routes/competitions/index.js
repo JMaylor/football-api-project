@@ -19,7 +19,6 @@
             properties: {
               competition_code: { type: "string" },
               competition_name: { type: ["string", "null"] },
-              seasons_url: { type: "string", format: "uri" },
             },
           },
         },
@@ -29,12 +28,7 @@
       const client = await fastify.pg.connect();
       const { rows } = await client.query(`SELECT * FROM competition;`);
       client.release();
-      reply.send(
-        rows.map((row) => ({
-          ...row,
-          seasons_url: `/seasons/${row.competition_code}`,
-        }))
-      );
+      reply.send(rows);
     },
   });
 }
