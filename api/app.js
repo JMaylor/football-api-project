@@ -25,7 +25,7 @@ fastify.register(autoLoad, {
   dir: join(__dirname, 'routes')
 })
 
-fastify.listen({ port: 5000 }, function (err, address) {
+fastify.listen({ port: process.env.PORT | 5000, host: '0.0.0.0' }, function (err, address) {
   if (err) {
     fastify.log.error(err)
     process.exit(1)
