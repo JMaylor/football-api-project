@@ -2,6 +2,7 @@ import axios from 'axios'
 import Papa from 'papaparse'
 import { Client } from 'pg'
 import fs from 'fs'
+import { parse, format } from 'date-fns'
 
 require('dotenv').config()
 
@@ -45,12 +46,6 @@ const competitions = [
   'E3',
   'EC',
 
-  /* Scotland */
-  'SC0',
-  'SC1',
-  'SC2',
-  'SC3',
-
   /* Germany */
   'D1',
   'D2',
@@ -67,20 +62,26 @@ const competitions = [
   'FR1',
   'FR2',
 
-  /* Netherlands */
-  'N1',
+  // /* Scotland */
+  // 'SC0',
+  // 'SC1',
+  // 'SC2',
+  // 'SC3',
 
-  /* Belgium */
-  'B1',
+  // /* Netherlands */
+  // 'N1',
 
-  /* Portugal */
-  'P1',
+  // /* Belgium */
+  // 'B1',
 
-  /* Turkey */
-  'T1',
+  // /* Portugal */
+  // 'P1',
 
-  /* Greece */
-  'G1',
+  // /* Turkey */
+  // 'T1',
+
+  // /* Greece */
+  // 'G1',
 ]
 
 const badRows: any[] = []
@@ -105,7 +106,7 @@ async function fetchSeasonData({ competition, season }: { competition: string, s
 
 async function connectToDatabase() {
   const client = new Client({
-    connectionString: process.env.POSTGRES_CONNECTION_URI
+    connectionString: process.env.POSTGRES_CONNECTION_URI,
   })
   await client.connect()
   console.log('connected to database successfully!');
@@ -121,14 +122,15 @@ async function addReferee({ referee, client }: { referee: string, client: Client
 }
 
 async function addCompetition({ competition, client }: { competition: string, client: Client }) {
-  await client.query('INSERT INTO competition (competition_name) VALUES ($1) ON CONFLICT DO NOTHING;', [competition])
+  await client.query('INSERT INTO competition (competition_code) VALUES ($1) ON CONFLICT DO NOTHING;', [competition])
 }
 
 async function addSeason({ competition, season, client }: { competition: string, season: string, client: Client }) {
-  await client.query('INSERT INTO season (competition_name, season_name) VALUES ($1, $2) ON CONFLICT DO NOTHING;', [competition, season])
+  const { rows } = await client.query('INSERT INTO season (competition_code, season_name) VALUES ($1, $2) ON CONFLICT DO NOTHING returning season_id;', [competition, season])
+  return rows[0].season_id
 }
 
-async function addFixture({ fixture, competition, season, client }: { fixture: any, competition: string, season: string, client: Client }) {
+async function addFixture({ fixture, seasonId, client }: { fixture: any, seasonId: number, client: Client }) {
   /* The following fields are required to insert a fixture:
   home team
   away team
@@ -137,21 +139,29 @@ async function addFixture({ fixture, competition, season, client }: { fixture: a
   full time away goals
   */
 
-  const homeTeam = fixture.HomeTeam || fixture.HT
-  const awayTeam = fixture.AwayTeam || fixture.AT
-  const fixtureDate = fixture.Date
-  const fullTimeHomeGoals = fixture.FTHG || fixture.HG
-  const fullTimeAwayGoals = fixture.FTAG || fixture.AG
-  const referee = fixture.Referee || null
+  const homeTeam = Object.hasOwn(fixture, 'HomeTeam') ? fixture.HomeTeam : Object.hasOwn(fixture, 'HT') ? fixture.HT : null
+  const awayTeam = Object.hasOwn(fixture, 'AwayTeam') ? fixture.AwayTeam : Object.hasOwn(fixture, 'AT') ? fixture.AT : null
 
-  if (!homeTeam || !awayTeam || !fixtureDate || fullTimeHomeGoals === '' || fullTimeAwayGoals === '') {
-    badRows.push({
-      error: 'missing data',
-      competition,
-      season,
-      fixture
-    })
-  }
+  const rawFixtureDate = fixture.Date
+  const parseFormat = rawFixtureDate.length === 8 ? 'dd/MM/yy' : 'dd/MM/yyyy'
+  const fixtureDate = fixture.Date ? format(parse(fixture.Date, parseFormat, new Date()), 'yyyy-MM-dd') : null
+  const fullTimeHomeGoals = Object.hasOwn(fixture, 'FTHG') ? fixture.FTHG : Object.hasOwn(fixture, 'HG') ? fixture.HG : null
+  const fullTimeAwayGoals = Object.hasOwn(fixture, 'FTAG') ? fixture.FTAG : Object.hasOwn(fixture, 'AG') ? fixture.AG : null
+  const referee = fixture.Referee || null
+  const homeShots = fixture.HS === '' ? null : fixture.HS
+  const awayShots = fixture.AS === '' ? null : fixture.AS
+  const homeShotsOnTarget = fixture.HST === '' ? null : fixture.HST
+  const awayShotsOnTarget = fixture.AST === '' ? null : fixture.AST
+  const homeFouls = fixture.HF === '' ? null : fixture.HF
+  const awayFouls = fixture.AF === '' ? null : fixture.AF
+  const homeCorners = fixture.HC === '' ? null : fixture.HC
+  const awayCorners = fixture.AC === '' ? null : fixture.AC
+  const homeYellows = fixture.HY === '' ? null : fixture.HY
+  const awayYellows = fixture.AY === '' ? null : fixture.AY
+  const homeReds = fixture.HR === '' ? null : fixture.HR
+  const awayReds = fixture.AR === '' ? null : fixture.AR
+  const halfTimeHomeGoals = fixture.HTHG === '' ? null : fixture.HTHG
+  const halfTimeAwayGoals = fixture.HTAG === '' ? null : fixture.HTAG
 
   try {
     await client.query(`
@@ -159,11 +169,24 @@ async function addFixture({ fixture, competition, season, client }: { fixture: a
           home_team_name,
           away_team_name,
           fixture_date,
-          season_name,
-          competition_name,
+          season_id,
           full_time_home_goals,
           full_time_away_goals,
-          referee_name
+          referee_name,
+          home_shots,
+          away_shots,
+          home_shots_on_target,
+          away_shots_on_target,
+          home_fouls,
+          away_fouls,
+          home_corners,
+          away_corners,
+          home_yellows,
+          away_yellows,
+          home_reds,
+          away_reds,
+          half_time_home_goals,
+          half_time_away_goals
         )
         VALUES (
             $1,
@@ -173,24 +196,50 @@ async function addFixture({ fixture, competition, season, client }: { fixture: a
             $5,
             $6,
             $7,
-            $8
+            $8,
+            $9,
+            $10,
+            $11,
+            $12,
+            $13,
+            $14,
+            $15,
+            $16,
+            $17,
+            $18,
+            $19,
+            $20,
+            $21
         ) ON CONFLICT DO NOTHING;
       `,
       [
         homeTeam,
         awayTeam,
         fixtureDate,
-        season,
-        competition,
+        seasonId,
         fullTimeHomeGoals,
         fullTimeAwayGoals,
-        referee
+        referee,
+        homeShots,
+        awayShots,
+        homeShotsOnTarget,
+        awayShotsOnTarget,
+        homeFouls,
+        awayFouls,
+        homeCorners,
+        awayCorners,
+        homeYellows,
+        awayYellows,
+        homeReds,
+        awayReds,
+        halfTimeHomeGoals,
+        halfTimeAwayGoals,
+
       ])
   } catch (error) {
     badRows.push({
       error,
-      competition,
-      season,
+      seasonId,
       fixture
     })
   }
@@ -217,7 +266,7 @@ async function fetchAllData() {
         console.log(fixtureData.filter((f: any) => !!f.Date).length);
 
         // add the season and fetch the generated id
-        await addSeason({ competition, season, client })
+        const seasonId = await addSeason({ competition, season, client })
 
         // loop through all fixtures in the season
         for (const fixture of fixtureData as any[]) {
@@ -231,7 +280,7 @@ async function fetchAllData() {
           if (fixture.Referee) await addReferee({ referee: fixture.Referee, client })
 
           // add the fixture
-          await addFixture({ fixture, competition, season, client })
+          await addFixture({ fixture, seasonId, client })
         }
       }
     }
