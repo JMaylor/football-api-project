@@ -25,10 +25,12 @@ fastify.register(autoLoad, {
   dir: join(__dirname, 'routes')
 })
 
-fastify.listen({ port: process.env.PORT | 5000}, function (err, address) {
-  if (err) {
+const start = async () => {
+  try {
+    await fastify.listen({ port: process.env.PORT | 8080 })
+  } catch (err) {
     fastify.log.error(err)
     process.exit(1)
   }
-  console.log(`Server is now listening on ${address}`)
-})
+}
+start()
