@@ -15,7 +15,7 @@
           type: "array",
           items: {
             type: "object",
-            required: ["competition_code", "competition_name", "seasons_url"],
+            required: ["competition_code", "competition_name"],
             properties: {
               competition_code: { type: "string" },
               competition_name: { type: ["string", "null"] },
