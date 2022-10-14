@@ -2,13 +2,13 @@ import fastifyPlugin from 'fastify-plugin'
 
 export default fastifyPlugin(async (fastify, options) => {
   fastify.register(import('@fastify/postgres'), {
-    connectionString: process.env.DATABASE_URL,
+    user: process.env.USERNAME,
+    host: process.env.HOSTNAME,
+    database: process.env.DATABASE,
+    password: process.env.PASSWORD,
+    port: process.env.DB_PORT,
     ssl: {
-    rejectUnauthorized: true,
-    ca:
-      process.env.NODE_ENV === 'production'
-        ? process.env.CA_CERT
-        : '',
+      rejectUnauthorized: false,
     },
   })
 })
