@@ -1,5 +1,7 @@
 import fastifyPlugin from 'fastify-plugin'
 
+console.log('reading CA_CERT', process.env.CA_CERT)
+
 export default fastifyPlugin(async (fastify, options) => {
   fastify.register(import('@fastify/postgres'), {
     user: process.env.USERNAME,
