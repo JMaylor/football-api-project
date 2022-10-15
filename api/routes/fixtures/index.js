@@ -91,4 +91,121 @@
       }
     },
   });
+
+  fastify.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["fixtures"],
+      description: "Get all fixtures for a given team",
+      querystring: {
+        type: 'object',
+        properties: {
+          team: {
+            type: ['array', 'string'],
+            maxItems: 2,
+            items: {
+              type: 'string'
+            }
+          },
+        },
+      },
+      response: {
+        200: {
+          type: "array",
+          items: {
+            type: "object",
+            required: [
+              "fixture_id",
+              "home_team_name",
+              "away_team_name",
+              "fixture_date",
+              "season_id",
+              "full_time_home_goals",
+              "full_time_away_goals",
+              "half_time_home_goals",
+              "half_time_away_goals",
+              "referee_name",
+              "home_shots",
+              "away_shots",
+              "home_shots_on_target",
+              "away_shots_on_target",
+              "home_fouls",
+              "away_fouls",
+              "home_corners",
+              "away_corners",
+              "home_yellows",
+              "away_yellows",
+              "home_reds",
+              "away_reds",
+              "season_name",
+              "competition_code",
+              "competition_name",
+            ],
+            properties: {
+              fixture_id: {type: "integer"},
+              home_team_name: {type: "string"},
+              away_team_name: {type: "string"},
+              fixture_date: {type: "string", format: "date"},
+              season_id: {type: "integer"},
+              full_time_home_goals: {type: "integer"},
+              full_time_away_goals: {type: "integer"},
+              half_time_home_goals: {type: ["integer", "null"]},
+              half_time_away_goals: {type: ["integer", "null"]},
+              referee_name: {type: ["string", "null"]},
+              home_shots: {type: ["integer", "null"]},
+              away_shots: {type: ["integer", "null"]},
+              home_shots_on_target: {type: ["integer", "null"]},
+              away_shots_on_target: {type: ["integer", "null"]},
+              home_fouls: {type: ["integer", "null"]},
+              away_fouls: {type: ["integer", "null"]},
+              home_corners: {type: ["integer", "null"]},
+              away_corners: {type: ["integer", "null"]},
+              home_yellows: {type: ["integer", "null"]},
+              away_yellows: {type: ["integer", "null"]},
+              home_reds: {type: ["integer", "null"]},
+              away_reds: {type: ["integer", "null"]},
+              season_name: { type: "string" },
+              competition_code: { type: "string" },
+              competition_name: { type: ["string", "null"] },
+            },
+          },
+        },
+      },
+    },
+    handler: async (req, reply) => {
+      const { team } = req.query;
+      console.log(team)
+      const client = await fastify.pg.connect();
+      const query = typeof team === 'string' ? `
+        select * from fixture
+        join season
+          using (season_id)
+        join competition
+          using (competition_code)
+        where home_team_name = $1
+          or away_team_name = $1;
+      ` : 
+      `
+        select * from fixture
+        join season
+          using (season_id)
+        join competition
+          using (competition_code)
+        where (home_team_name = $1
+          and away_team_name = $2)
+          or (home_team_name = $2
+            and away_team_name = $1);
+      `
+      const { rows } = await client.query(query,
+        [team].flat()
+      );
+      client.release();
+      if (rows.length === 0) {
+        reply.callNotFound()
+      } else {
+        reply.send(rows);
+      }
+    },
+  });
 }
