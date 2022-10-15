@@ -91,7 +91,11 @@
         ]
       );
       client.release();
-      reply.send(rows);
+      if (rows.length === 0) {
+        reply.callNotFound()
+      } else {
+        reply.send(rows);
+      }
     },
   });
 }
