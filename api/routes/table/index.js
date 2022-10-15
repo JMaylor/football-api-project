@@ -10,6 +10,12 @@
     schema: {
       tags: ["table"],
       description: "Get final league table for a given season",
+      params: {
+        type: 'object',
+        properties: {
+          seasonId: { type: 'integer' }
+        }
+      },
       response: {
         200: {
           type: "array",

@@ -53,7 +53,10 @@
       tags: ["seasons"],
       description: "Get all seasons for a certain competition",
       params: {
-        competitionCode: { type: "string" },
+        type: 'object',
+        properties: {
+          competitionCode: { type: 'string' }
+        }
       },
       response: {
         200: {
