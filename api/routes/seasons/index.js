@@ -35,10 +35,7 @@
       const client = await fastify.pg.connect();
       const { rows } = await client.query(
         `SELECT
-          s.season_id,
-          s.season_name,
-          c.competition_code,
-          c.competition_name
+          *
         FROM season s
           JOIN competition c
             USING (competition_code);`
@@ -63,10 +60,17 @@
           type: "array",
           items: {
             type: "object",
-            required: ["season_id", "season_name"],
+            required: [
+              "season_id",
+              "season_name",
+              "competition_code",
+              "competition_name",
+            ],
             properties: {
               season_id: { type: "integer" },
               season_name: { type: "string" },
+              competition_code: { type: "string" },
+              competition_name: { type: ["string", "null"] },
             },
           },
         },
@@ -77,10 +81,11 @@
       const client = await fastify.pg.connect();
       const { rows } = await client.query(
         `SELECT
-          s.season_id,
-          s.season_name
+          *
         FROM season s
-          WHERE s.competition_code = $1;`,
+          JOIN competition c
+            USING (competition_code)
+        WHERE s.competition_code = $1;`,
         [
           competitionCode
         ]
