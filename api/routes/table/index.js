@@ -42,7 +42,11 @@
       const client = await fastify.pg.connect();
       const { rows } = await client.query(`select * from league_table($1)`,[seasonId]);
       client.release();
-      reply.send(rows);
+      if (rows.length === 0) {
+        reply.callNotFound()
+      } else {
+        reply.send(rows);
+      }
     },
   });
 }
