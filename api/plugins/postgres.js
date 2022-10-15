@@ -4,7 +4,8 @@ export default fastifyPlugin(async (fastify, options) => {
   fastify.register(import('@fastify/postgres'), {
     ssl: {
       require: true,
-      rejectUnauthorized: process.env.NODE_ENV !== 'development'
+      rejectUnauthorized: process.env.NODE_ENV !== 'development',
+      ca: process.env.CA_CERT
     }
   })
 })
