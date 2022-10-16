@@ -8,11 +8,21 @@ dotenv.config()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+const logger = process.env.NODE_ENV === 'development' ? {
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      translateTime: 'HH:MM:ss Z',
+      ignore: 'pid,hostname',
+          },
+  },
+} : true
+
 /**
  * @type {import('fastify').FastifyInstance} Instance of Fastify
  */
 const fastify = Fastify({
-  logger: true
+  logger,
 })
 
 // autoload plugins
@@ -27,7 +37,9 @@ fastify.register(autoLoad, {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: process.env.PORT | 8080, host: '0.0.0.0' })
+    const port = process.env.PORT | 8080
+    const host = process.env.NODE_ENV === 'development' ? 'localhost' : '0.0.0.0'
+    await fastify.listen({ port, host })
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
