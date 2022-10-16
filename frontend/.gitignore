@@ -1,9 +1,3 @@
-node_modules
-dist
-.env
-
-badRows.json
-
 # Logs
 logs
 *.log
