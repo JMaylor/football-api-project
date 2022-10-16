@@ -23,18 +23,25 @@ export default {
       {
         text: 'Overview',
         items: [
-          { text: 'About', link: '/about' },
+          { text: 'About', link: '/overview/about' },
+          { text: 'Tech Stack', link: '/overview/stack' },
         ]
       },
       {
         text: 'Database',
         items: [
           { text: 'Schema', link: '/database/schema' },
-          { text: 'Data', link: '/database/data' },
+          { text: 'Population', link: '/database/population' },
         ]
       },
       {
-        text: 'API',
+        text: 'Fastify',
+        items: [
+          { text: 'Plugins', link: '/fastify/plugins' },
+        ]
+      },
+      {
+        text: 'API Documentation',
         items: [
           { text: 'Getting Started', link: '/api/getting-started' },
         ]

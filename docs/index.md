@@ -9,9 +9,9 @@ hero:
     alt: Football
   actions:
     - theme: brand
-      text: Get Started
-      link: /database/schema
+      text: API Docs
+      link: /api/getting-started
     - theme: alt
-      text: View on GitHub
-      link: https://github.com/JMaylor/football-api-project
+      text: Blog - Making of
+      link: /overview/about
 ---
