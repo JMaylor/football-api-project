@@ -15,9 +15,6 @@ export default fastifyPlugin(async (fastify, _options) => {
       schemes: ['http', 'https'],
       consumes: ['application/json'],
       produces: ['application/json'],
-      tags: [
-        { name: 'competition', description: 'competition related end-points' },
-      ],
       definitions: {
         competition: {
           type: 'object',
