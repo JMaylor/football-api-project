@@ -106,7 +106,6 @@ const response = {
   fastify.route({
     method: "GET",
     url: "/team/:team",
-    style: 'matrix',
     schema: {
       tags: ["fixtures"],
       description: "Get all fixtures for a given team",
@@ -145,7 +144,6 @@ const response = {
   fastify.route({
     method: "GET",
     url: "/head-to-head/:teamOne/:teamTwo",
-    style: 'matrix',
     schema: {
       tags: ["fixtures"],
       description: "Get all fixtures between two teams",
@@ -159,9 +157,7 @@ const response = {
       response,
     },
     handler: async (req, reply) => {
-      console.log('hi')
       const { teamOne, teamTwo } = req.params;
-      console.log(teamOne, teamTwo)
       const client = await fastify.pg.connect();
       
       const { rows } = await client.query(`
@@ -177,6 +173,44 @@ const response = {
             and away_team_name = $1);
         `,
         [teamOne, teamTwo]
+      );
+      client.release();
+      if (rows.length === 0) {
+        reply.callNotFound()
+      } else {
+        reply.send(rows);
+      }
+    },
+  });
+
+  fastify.route({
+    method: "GET",
+    url: "/referee/:referee",
+    schema: {
+      tags: ["fixtures"],
+      description: "Get all fixtures a referee officiated",
+      params: {
+        type: 'object',
+        properties: {
+          referee: { type: 'string' },
+        }
+      },
+      response,
+    },
+    handler: async (req, reply) => {
+      const { referee } = req.params;
+      const client = await fastify.pg.connect();
+      
+      const { rows } = await client.query(`
+        select *
+        from fixture
+        join season
+          using (season_id)
+        join competition
+          using (competition_code)
+        where referee_name = $1;
+        `,
+        [referee]
       );
       client.release();
       if (rows.length === 0) {
