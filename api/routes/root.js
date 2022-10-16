@@ -13,15 +13,34 @@
       response: {
         200: {
           type: "object",
-          required: ["foo"],
+          required: ["status"],
           properties: {
-            foo: { type: "string" },
+            status: {
+              type: "string",
+              default: 'available'
+            },
+          },
+        },
+        503: {
+          type: "object",
+          required: ["status"],
+          properties: {
+            status: {
+              type: "string",
+              default: 'unavailable'
+            },
           },
         },
       },
     },
     handler: async (_req, reply) => {
-      reply.send({foo: 'bar'});
+      try {
+        const client = await fastify.pg.connect();
+        client.release()
+        reply.send({status: 'available'});
+      } catch(error) {
+        reply.status(503).send({status: 'unavailable'});
+      }
     },
   });
 }
