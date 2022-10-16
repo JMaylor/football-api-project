@@ -9,7 +9,7 @@
     url: "/",
     schema: {
       tags: ["referees"],
-      description: "Get all referees",
+      description: "Get all referees, and the number of games they have officiated",
       response: {
         200: {
           type: "array",
@@ -17,9 +17,11 @@
             type: "object",
             required: [
               "referee_name",
+              "count"
             ],
             properties: {
               referee_name: { type: "string" },
+              count: { type: "integer" },
             },
           },
         },
@@ -29,8 +31,12 @@
       const client = await fastify.pg.connect();
       const { rows } = await client.query(
         `SELECT
-          *
-        FROM referee;`
+          referee_name,
+          count(*)
+        FROM referee
+        JOIN fixture
+          USING (referee_name)
+        GROUP BY (referee_name);`
       );
       client.release();
       reply.send(rows);
