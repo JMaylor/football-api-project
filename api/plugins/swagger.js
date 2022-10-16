@@ -34,7 +34,7 @@ export default fastifyPlugin(async (fastify, _options) => {
   fastify.register(import('@fastify/swagger-ui'), {
     routePrefix: '/documentation',
     uiConfig: {
-      docExpansion: 'full',
+      docExpansion: 'list',
       deepLinking: false
     },
     uiHooks: {
