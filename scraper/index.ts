@@ -7,6 +7,7 @@ import { parse, format } from 'date-fns'
 require('dotenv').config()
 
 const seasons = [
+  '2223',
   '2122',
   '2021',
   '1920',
