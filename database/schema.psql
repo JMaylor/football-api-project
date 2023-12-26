@@ -53,3 +53,105 @@ create table fixture(
 
   unique (home_team_name, away_team_name, fixture_date)
 );
+
+create or replace function season_table(
+  p_season_id integer
+)
+returns table (
+  team_name text,
+  played integer,
+  won integer,
+  drawn integer,
+  lost integer,
+  goals_for integer,
+  goals_against integer,
+  goal_difference integer,
+  points integer,
+  deductions integer
+)
+language plpgsql
+as $$
+  declare row_record record;
+begin
+  create temp table temp_league_table as
+  select
+    t.team_name as team_name,
+    0 as played,
+    0 as won,
+    0 as drawn,
+    0 as lost,
+    0 as goals_for,
+    0 as goals_against,
+    0 as goal_difference,
+    0 as points,
+    0 as deductions
+  from team t;
+
+  for row_record in
+    select
+      f.home_team_name,
+      f.away_team_name,
+      f.full_time_home_goals,
+      f.full_time_away_goals
+    from fixture f
+    where f.season_id = p_season_id
+  loop
+    -- Update home team stats
+    update temp_league_table t
+    set
+      played = t.played + 1,
+      goals_for = t.goals_for + row_record.full_time_home_goals,
+      goals_against = t.goals_against + row_record.full_time_away_goals,
+      goal_difference = t.goal_difference + row_record.full_time_home_goals - row_record.full_time_away_goals,
+      won = t.won + case when row_record.full_time_home_goals > row_record.full_time_away_goals then 1 else 0 end,
+      drawn = t.drawn + case when row_record.full_time_home_goals = row_record.full_time_away_goals then 1 else 0 end,
+      lost = t.lost + case when row_record.full_time_home_goals < row_record.full_time_away_goals then 1 else 0 end,
+      points = t.points +
+        case when row_record.full_time_home_goals > row_record.full_time_away_goals then 3
+              when row_record.full_time_home_goals = row_record.full_time_away_goals then 1
+              else 0
+        end
+    where t.team_name = row_record.home_team_name;
+
+    -- Update away team stats
+    update temp_league_table t
+    set
+      played = t.played + 1,
+      goals_for = t.goals_for + row_record.full_time_away_goals,
+      goals_against = t.goals_against + row_record.full_time_home_goals,
+      goal_difference = t.goal_difference + row_record.full_time_away_goals - row_record.full_time_home_goals,
+      won = t.won + case when row_record.full_time_home_goals < row_record.full_time_away_goals then 1 else 0 end,
+      drawn = t.drawn + case when row_record.full_time_home_goals = row_record.full_time_away_goals then 1 else 0 end,
+      lost = t.lost + case when row_record.full_time_home_goals > row_record.full_time_away_goals then 1 else 0 end,
+      points = t.points +
+        case when row_record.full_time_home_goals < row_record.full_time_away_goals then 3
+              when row_record.full_time_home_goals = row_record.full_time_away_goals then 1
+              else 0
+        end
+    where t.team_name = row_record.away_team_name;
+  end loop;
+
+  -- Update the temporary table with deductions
+  for row_record in
+    select
+      d.team_name,
+      d.deduction_amount
+    from deduction d
+    where d.season_id = p_season_id
+  loop
+    update temp_league_table t
+    set
+      points = t.points - row_record.deduction_amount,
+      deductions = row_record.deduction_amount
+    where t.team_name = row_record.team_name;
+  end loop;
+
+  return query
+  select *
+  from temp_league_table
+  where temp_league_table.played > 0
+  order by points desc, goal_difference desc, goals_for desc;
+
+  drop table if exists temp_league_table;
+end;
+$$;
