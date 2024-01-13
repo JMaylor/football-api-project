@@ -1,11 +1,17 @@
 <script lang="ts" setup>
-const supabase = useTypedSupabaseClient()
+import { useTeamListQuery } from '~/services/api/teamListApi'
 
-const { data: teams } = await supabase.from('team').select('*').order('team_name', { ascending: true })
-const team = ref<string>()
+const { data: teams } = useTeamListQuery()
+
+const modelValue = defineModel<string>({ required: false })
 </script>
 
 <template>
-  <USelectMenu v-if="teams" v-model="team" searchable :options="teams" option-attribute="team_name" value-attribute="team_name" class="w-40" />
-  {{ team }}
+  <USelect
+    v-if="teams"
+    v-model="modelValue"
+    :options="teams"
+    class="w-40"
+    icon="i-heroicons-magnifying-glass-20-solid"
+  />
 </template>

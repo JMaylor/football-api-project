@@ -216,6 +216,36 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      head_to_head: {
+        Args: {
+          primary_team: string
+          secondary_team: string
+        }
+        Returns: {
+          away_corners: number | null
+          away_fouls: number | null
+          away_reds: number | null
+          away_shots: number | null
+          away_shots_on_target: number | null
+          away_team_name: string
+          away_yellows: number | null
+          fixture_date: string
+          fixture_id: number
+          full_time_away_goals: number
+          full_time_home_goals: number
+          half_time_away_goals: number | null
+          half_time_home_goals: number | null
+          home_corners: number | null
+          home_fouls: number | null
+          home_reds: number | null
+          home_shots: number | null
+          home_shots_on_target: number | null
+          home_team_name: string
+          home_yellows: number | null
+          referee_name: string | null
+          season_id: number
+        }[]
+      }
       season_table: {
         Args: {
           p_season_id: number

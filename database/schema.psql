@@ -155,3 +155,53 @@ begin
   drop table if exists temp_league_table;
 end;
 $$;
+
+create or replace function head_to_head(
+  primary_team text,
+  secondary_team text
+)
+returns setof fixture
+language plpgsql
+as $$
+begin
+  return query (
+    select *
+    from fixture
+    where (home_team_name = primary_team and away_team_name = secondary_team) 
+    or    (home_team_name = secondary_team and away_team_name = primary_team)
+    order by fixture_date desc
+  );
+end;
+$$;
+
+create
+or replace function get_opposition_teams (p_team text) returns table (team_name text) language plpgsql as $$
+  declare row_record record;
+begin
+return query (
+  with f as (select
+  *
+from
+  fixture
+where
+  p_team in (home_team_name, away_team_name)
+),
+home_teams as (
+  select distinct home_team_name team_name
+  from f
+  where f.away_team_name = p_team
+),
+away_teams as (
+  select distinct away_team_name team_name
+  from f
+  where f.home_team_name = p_team
+),
+opposition_teams as (
+select * from home_teams
+union
+select * from away_teams)
+
+select distinct team_name from opposition_teams order by team_name);
+end;
+$$;
+
