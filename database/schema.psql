@@ -58,6 +58,7 @@ create or replace function season_table(
   p_season_id integer
 )
 returns table (
+  pos integer,
   team_name text,
   played integer,
   won integer,
@@ -147,10 +148,11 @@ begin
   end loop;
 
   return query
-  select *
-  from temp_league_table
-  where temp_league_table.played > 0
-  order by points desc, goal_difference desc, goals_for desc;
+  select  (row_number() over (order by tlt.points desc, tlt.goal_difference desc, tlt.goals_for desc))::integer as pos,
+          tlt.*
+  from temp_league_table tlt
+  where tlt.played > 0
+  order by tlt.points desc, tlt.goal_difference desc, tlt.goals_for desc;
 
   drop table if exists temp_league_table;
 end;
