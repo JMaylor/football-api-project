@@ -157,3 +157,40 @@ begin
   drop table if exists temp_league_table;
 end;
 $$;
+
+create
+or replace function head_to_head (primary_team text, secondary_team text) returns table (
+  fixture_id integer,
+  home_team_name text,
+  away_team_name text,
+  fixture_date date,
+  season_id integer,
+  full_time_home_goals integer,
+  full_time_away_goals integer,
+  referee_name text,
+  season_name text,
+  competition_code text,
+  competition_name text
+) language plpgsql as $$
+begin
+  return query (
+    select f.fixture_id,
+           f.home_team_name,
+           f.away_team_name,
+           f.fixture_date,
+           f.season_id,
+           f.full_time_home_goals,
+           f.full_time_away_goals,
+           f.referee_name,
+           s.season_name,
+           c.competition_code,
+           c.competition_name
+    from fixture f
+    left join season s on f.season_id = s.season_id
+    left join competition c on s.competition_code = c.competition_code
+    where (f.home_team_name = primary_team and f.away_team_name = secondary_team) 
+    or    (f.home_team_name = secondary_team and f.away_team_name = primary_team)
+    order by f.fixture_date desc
+  );
+end;
+$$;
