@@ -58,6 +58,7 @@ create or replace function season_table(
   p_season_id integer
 )
 returns table (
+  pos integer,
   team_name text,
   played integer,
   won integer,
@@ -147,61 +148,49 @@ begin
   end loop;
 
   return query
-  select *
-  from temp_league_table
-  where temp_league_table.played > 0
-  order by points desc, goal_difference desc, goals_for desc;
+  select  (row_number() over (order by tlt.points desc, tlt.goal_difference desc, tlt.goals_for desc))::integer as pos,
+          tlt.*
+  from temp_league_table tlt
+  where tlt.played > 0
+  order by tlt.points desc, tlt.goal_difference desc, tlt.goals_for desc;
 
   drop table if exists temp_league_table;
 end;
 $$;
 
-create or replace function head_to_head(
-  primary_team text,
-  secondary_team text
-)
-returns setof fixture
-language plpgsql
-as $$
+create
+or replace function head_to_head (primary_team text, secondary_team text) returns table (
+  fixture_id integer,
+  home_team_name text,
+  away_team_name text,
+  fixture_date date,
+  season_id integer,
+  full_time_home_goals integer,
+  full_time_away_goals integer,
+  referee_name text,
+  season_name text,
+  competition_code text,
+  competition_name text
+) language plpgsql as $$
 begin
   return query (
-    select *
-    from fixture
-    where (home_team_name = primary_team and away_team_name = secondary_team) 
-    or    (home_team_name = secondary_team and away_team_name = primary_team)
-    order by fixture_date desc
+    select f.fixture_id,
+           f.home_team_name,
+           f.away_team_name,
+           f.fixture_date,
+           f.season_id,
+           f.full_time_home_goals,
+           f.full_time_away_goals,
+           f.referee_name,
+           s.season_name,
+           c.competition_code,
+           c.competition_name
+    from fixture f
+    left join season s on f.season_id = s.season_id
+    left join competition c on s.competition_code = c.competition_code
+    where (f.home_team_name = primary_team and f.away_team_name = secondary_team) 
+    or    (f.home_team_name = secondary_team and f.away_team_name = primary_team)
+    order by f.fixture_date desc
   );
 end;
 $$;
-
-create
-or replace function get_opposition_teams (p_team text) returns table (team_name text) language plpgsql as $$
-  declare row_record record;
-begin
-return query (
-  with f as (select
-  *
-from
-  fixture
-where
-  p_team in (home_team_name, away_team_name)
-),
-home_teams as (
-  select distinct home_team_name team_name
-  from f
-  where f.away_team_name = p_team
-),
-away_teams as (
-  select distinct away_team_name team_name
-  from f
-  where f.home_team_name = p_team
-),
-opposition_teams as (
-select * from home_teams
-union
-select * from away_teams)
-
-select distinct team_name from opposition_teams order by team_name);
-end;
-$$;
-
